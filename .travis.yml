@@ -1,0 +1,23 @@
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t aurelius88/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run aurelius88/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t aurelius88/multi-client ./client
+  - docker build -t aurelius88/multi-nginx ./nginx
+  - docker build -t aurelius88/multi-server ./server
+  - docker build -t aurelius88/multi-worker ./worker
+  # Log in to the docker cli
+  - docker login -u "$DOCKER_ID" -p "$DOCKER_PASSWORD"
+  # Take those images and push them to docker hub
+  - docker push aurelius88/multi-client
+  - docker push aurelius88/multi-nginx
+  - docker push aurelius88/multi-server
+  - docker push aurelius88/multi-worker
